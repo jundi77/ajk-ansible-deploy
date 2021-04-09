@@ -62,10 +62,11 @@
         login_password: "{{ mysql_root_password }}"
 
     - name: Buat db "laravel" sesuai .env
+      mysql_db: 
         name: laravel
-          state: present
-          login_user: root
-          login_password: "{{ mysql_root_password }}"
+        state: present
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
 
 # laravel
     - name: "Pull dari gitlab"
