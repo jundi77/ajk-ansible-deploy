@@ -61,6 +61,12 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
+    - name: Buat db "laravel" sesuai .env
+        name: laravel
+          state: present
+          login_user: root
+          login_password: "{{ mysql_root_password }}"
+
 # laravel
     - name: "Pull dari gitlab"
       git:
@@ -83,10 +89,10 @@
         chdir: "{{ working_directory }}"
       become: no
 
-    # - name: "Jalankan migration"
-    #   script: "php artisan migrate --force"
+    - name: "Jalankan migration"
+      script: "php artisan migrate --force"
 
-
+# TODO copy working_directory ke var www, config nginx
 # # Nginx Configuration
 #     - name: Sets Nginx conf file
 #       template:
