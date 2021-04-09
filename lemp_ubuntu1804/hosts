@@ -1,2 +1,2 @@
-[mylocalhost]
-localhost ansible_connection=local
+[target1]
+192.168.43.21 ansible_ssh_user=penugasan ansible_ssh_pass=penugasan ansible_become_pass=penugasan

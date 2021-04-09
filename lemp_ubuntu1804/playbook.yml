@@ -10,30 +10,34 @@
   tasks:
     - name: Install Prerequisites
       apt: name={{ item }} update_cache=yes state=latest force_apt_get=yes
-      loop: [ 'aptitude' ]
+      loop: [ 'aptitude', 'software-properties-common' ]
+
+    - name: Add php repository
+      apt_repository:
+        repo: ppa:ondrej/php
+      when: ansible_distribution == "Ubuntu"
 
     - name: Install LEMP Packages
       apt: name={{ item }} update_cache=yes state=latest
-      loop: [ 'nginx', 'mysql-server', 'python3-pymysql', 'php-fpm', 'php-mysql' ]
-    
-# Nginx Configuration
-    - name: Sets Nginx conf file
-      template:
-        src: "files/nginx.conf.j2"
-        dest: "/etc/nginx/sites-available/{{ http_conf }}"
+      loop: [ 'nginx', 'mysql-server', 'python3-pymysql', 'php8.0', 'php8.0-fpm', 'php8.0-mbstring', 'php8.0-mysql', 'php8.0-xml', 'php-fpm', 'php-mysql' ]
 
-    - name: Enables new site
-      file:
-        src: "/etc/nginx/sites-available/{{ http_conf }}"
-        dest: "/etc/nginx/sites-enabled/{{ http_conf }}"
-        state: link
-      notify: Reload Nginx
-    
-    - name: Removes "default" site
-      file:
-        path: "/etc/nginx/sites-enabled/default"
-        state: absent
-      notify: Reload Nginx
+    - name: Download dan install Composer
+      shell: curl -sS https://getcomposer.org/installer | php
+      args:
+        chdir: /usr/src
+        creates: /usr/local/bin/composer
+        warn: false
+      become: yes
+
+    - name: Add composer to global path
+      copy:
+        dest: /usr/localbin/composer
+        group: root
+        mode: '0755'
+        owner: root
+        src: /usr/src/composer.phar
+        remote_src: yes
+      become: yes
 
 # MySQL Configuration
     - name: Sets the root password 
@@ -57,19 +61,57 @@
         login_user: root
         login_password: "{{ mysql_root_password }}"
 
-# UFW Configuration
-    - name: "UFW - Allow HTTP on port {{ http_port }}"
-      ufw:
-        rule: allow
-        port: "{{ http_port }}"
-        proto: tcp
+# laravel
+# # Sets Up PHP Info Page
+#     - name: Sets Up PHP Info Page
+#       template:
+#         src: "files/info.php.j2"
+#         dest: "/var/www/html/info.php"
 
-# Sets Up PHP Info Page
-    - name: Sets Up PHP Info Page
-      template:
-        src: "files/info.php.j2"
-        dest: "/var/www/html/info.php"
+#     - name: "Pull dari gitlab"
+#       git:
+#         repo: "{{github_repo_url}}"
+#         dest: "{{working_directory}}"
+#         version: master
+#         accept_hostkey: yes
+#       register: repo
 
+#     - name: "Install dependency composer"
+#       script: composer install --no-scripts --no-dev
+
+#     - name: "Jalankan migration"
+#       script: "php artisan migrate --force"
+
+
+# # Nginx Configuration
+#     - name: Sets Nginx conf file
+#       template:
+#         src: "files/nginx.conf.j2"
+#         dest: "/etc/nginx/sites-available/{{ http_conf }}"
+
+#     - name: Enables new site
+#       file:
+#         src: "/etc/nginx/sites-available/{{ http_conf }}"
+#         dest: "/etc/nginx/sites-enabled/{{ http_conf }}"
+#         state: link
+#       notify: Reload Nginx
+    
+#     - name: Removes "default" site
+#       file:
+#         path: "/etc/nginx/sites-enabled/default"
+#         state: absent
+#       notify: Reload Nginx
+
+
+
+# # UFW Configuration
+#     - name: "UFW - Allow HTTP on port {{ http_port }}"
+#       ufw:
+#         rule: allow
+#         port: "{{ http_port }}"
+#         proto: tcp
+
+  
   handlers:
     - name: Reload Nginx
       service:
