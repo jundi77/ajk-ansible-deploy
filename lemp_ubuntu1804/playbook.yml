@@ -8,18 +8,18 @@
     - vars/default.yml
 
   tasks:
-    # - name: Install Prerequisites
-    #   apt: name={{ item }} update_cache=yes state=latest force_apt_get=yes
-    #   loop: [ 'aptitude', 'software-properties-common' ]
+    - name: Install Prerequisites
+      apt: name={{ item }} update_cache=yes state=latest force_apt_get=yes
+      loop: [ 'aptitude', 'software-properties-common' ]
 
-    # - name: Add php repository
-    #   apt_repository:
-    #     repo: ppa:ondrej/php
-    #   when: ansible_distribution == "Ubuntu"
+    - name: Add php repository
+      apt_repository:
+        repo: ppa:ondrej/php
+      when: ansible_distribution == "Ubuntu"
 
-    # - name: Install LEMP Packages
-    #   apt: name={{ item }} update_cache=yes state=latest
-    #   loop: [ 'nginx', 'mysql-server', 'python3-pymysql', 'php8.0', 'php8.0-fpm', 'php8.0-mbstring', 'php8.0-mysql', 'php8.0-xml', 'php-fpm', 'php-mysql' ]
+    - name: Install LEMP Packages
+      apt: name={{ item }} update_cache=yes state=latest
+      loop: [ 'zip', 'unzip', 'nginx', 'mysql-server', 'python3-pymysql', 'php8.0', 'php8.0-fpm', 'php8.0-mbstring', 'php8.0-mysql', 'php8.0-xml', 'php8.0-zip', 'php-fpm', 'php-mysql']
 
     - name: Download dan install Composer
       shell: curl -sS https://getcomposer.org/installer | php
@@ -68,6 +68,7 @@
         src: "files/info.php.j2"
         dest: "/var/www/html/info.php"
 
+
     - name: "Pull dari gitlab"
       git:
         repo: "{{github_repo_url}}"
@@ -75,9 +76,17 @@
         version: master
         accept_hostkey: yes
       register: repo
+      become: no
+
+    - name: Sets Up .env untuk laravel
+      template:
+        src: "files/.env.j2"
+        dest: "{{working_directory}}/.env"
 
     - name: "Install dependency composer"
-      script: "composer install --no-scripts --no-dev"
+      shell: "composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction"
+      args:
+        chdir: "{{ working_directory }}"
 
     # - name: "Jalankan migration"
     #   script: "php artisan migrate --force"
