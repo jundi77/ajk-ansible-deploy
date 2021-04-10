@@ -93,7 +93,17 @@
     - name: "Jalankan migration"
       script: "php artisan migrate --force"
 
-# TODO copy working_directory ke var www, config nginx
+    - name: "Install dependency composer"
+      shell: "composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction"
+      args:
+        chdir: "{{ working_directory }}"
+      become: no
+
+    - name: "Copy laravel ke /var/www"
+      shell: "cp -r {{working_directory}} /var/www"
+      become: yes
+
+# TODO config nginx
 # # Nginx Configuration
 #     - name: Sets Nginx conf file
 #       template:
