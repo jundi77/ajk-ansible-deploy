@@ -99,40 +99,37 @@
         chdir: "{{ working_directory }}"
       become: no
 
-    - name: "Copy laravel ke /var/www"
-      shell: "cp -r {{working_directory}} /var/www"
+    - name: "Copy laravel ke /var/www/html"
+      shell: "cp -r {{working_directory}} /var/www/html"
       become: yes
 
-# TODO config nginx
-# # Nginx Configuration
-#     - name: Sets Nginx conf file
-#       template:
-#         src: "files/nginx.conf.j2"
-#         dest: "/etc/nginx/sites-available/{{ http_conf }}"
+# Nginx Configuration
+    - name: Sets Nginx conf file
+      template:
+        src: "files/nginx.conf.j2"
+        dest: "/etc/nginx/sites-available/{{ http_conf }}"
 
-#     - name: Enables new site
-#       file:
-#         src: "/etc/nginx/sites-available/{{ http_conf }}"
-#         dest: "/etc/nginx/sites-enabled/{{ http_conf }}"
-#         state: link
-#       notify: Reload Nginx
+    - name: Enables new site
+      file:
+        src: "/etc/nginx/sites-available/{{ http_conf }}"
+        dest: "/etc/nginx/sites-enabled/{{ http_conf }}"
+        state: link
+      notify: Reload Nginx
     
-#     - name: Removes "default" site
-#       file:
-#         path: "/etc/nginx/sites-enabled/default"
-#         state: absent
-#       notify: Reload Nginx
+    - name: Removes "default" site
+      file:
+        path: "/etc/nginx/sites-enabled/default"
+        state: absent
+      notify: Reload Nginx
+
+# UFW Configuration
+    - name: "UFW - Allow HTTP on port {{ http_port }}"
+      ufw:
+        rule: allow
+        port: "{{ http_port }}"
+        proto: tcp
 
 
-
-# # UFW Configuration
-#     - name: "UFW - Allow HTTP on port {{ http_port }}"
-#       ufw:
-#         rule: allow
-#         port: "{{ http_port }}"
-#         proto: tcp
-
-  
   handlers:
     - name: Reload Nginx
       service:
