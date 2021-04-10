@@ -106,6 +106,10 @@
       shell: "cp -r {{working_directory}} /var/www/html"
       become: yes
 
+    - name: "Set permission laravel"
+      shell: "chown -R www-data.www-data /var/www/html/tugas-ansible"
+      become: yes
+
 # Nginx Configuration
     - name: Sets Nginx conf file
       template:
