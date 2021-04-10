@@ -91,7 +91,10 @@
       become: no
 
     - name: "Jalankan migration"
-      script: "php artisan migrate --force"
+      shell: "php artisan migrate --force"
+      args:
+        chdir: "{{ working_directory }}"
+      become: no
 
     - name: "Install dependency composer"
       shell: "composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction"
